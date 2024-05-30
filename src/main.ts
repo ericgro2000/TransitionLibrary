@@ -2,6 +2,8 @@ import "./style.css";
 
 import * as THREE from "three";
 
+import * as THREE from "https://esm.sh/three";
+
 const canvas = document.querySelector("canvas.webgl");
 
 const scene = new THREE.Scene();
@@ -47,10 +49,14 @@ const manipulate = () => {
     for (const key in changers) {
       const { changer, value } = changers[key];
 
-      thing[changer][key] = initial[key] + (value - initial[key]) * progress;
+      if (thing[changer][key] === value) {
+        delete changers[key];
+      } else {
+        thing[changer][key] = initial[key] + (value - initial[key]) * progress;
+      }
     }
 
-    if (progress >= 1) {
+    if (Object.keys(changers).length === 0) {
       callBack?.();
       things.splice(i, 1);
       i--;
@@ -125,8 +131,14 @@ function axisChangeYZntwo() {
     thing: mesh,
     changers: {
       y: { changer: "position", value: -1 },
-      z: { changer: "position", value: Math.random() < 0.5 ? -1 : 1 },
-      x: { changer: "position", value: Math.random() < 0.5 ? -1 : 1 },
+      z: {
+        changer: "position",
+        value: Math.random() < 0.5 ? -1 : 1,
+      },
+      x: {
+        changer: "position",
+        value: Math.random() < 0.5 ? -1 : 1,
+      },
     },
     duration: 5,
     initial: { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z },
@@ -140,8 +152,14 @@ function axisChangeYZone() {
     thing: mesh,
     changers: {
       y: { changer: "position", value: 2 },
-      z: { changer: "position", value: Math.random() < 0.5 ? -1 : 1 },
-      x: { changer: "position", value: Math.random() < 0.5 ? -1 : 1 },
+      z: {
+        changer: "position",
+        value: Math.random() < 0.5 ? -1 : 1,
+      },
+      x: {
+        changer: "position",
+        value: Math.random() < 0.5 ? -1 : 1,
+      },
     },
     duration: 5,
     initial: { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z },
