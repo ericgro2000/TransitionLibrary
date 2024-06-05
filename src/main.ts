@@ -2,12 +2,8 @@ import "./style.css";
 
 import * as THREE from "three";
 
-import * as THREE from "https://esm.sh/three";
-
 const canvas = document.querySelector("canvas.webgl");
-
 const scene = new THREE.Scene();
-
 const clock = new THREE.Clock();
 
 const geometry = new THREE.BoxGeometry(1, 1, 1);
@@ -34,17 +30,42 @@ renderer.setSize(sizes.width, sizes.height);
 
 const things = [];
 
-let time = new Date().getTime();
+function initialize({ thing, changers, duration, callBack }) {
+  const initialTime = new Date().getTime();
+  const initials = {};
 
-const manipulate = () => {
-  const newTime = new Date().getTime();
-  const deltaTime = (newTime - time) / 1000;
-  time = newTime;
+  for (const key in changers) {
+    initials[key] = thing[changers[key].changer][key];
+  }
+
+  const newObject = {
+    thing,
+    changers,
+    duration,
+    initialTime,
+    initials,
+    callBack,
+  };
+
+  things.push(newObject);
+
+  return newObject;
+}
+
+let newTime = new Date().getTime();
+
+function manipulate() {
+  const currentTime = new Date().getTime();
+  const deltaTime = (currentTime - newTime) / 1000;
+  newTime = currentTime;
 
   for (let i = 0; i < things.length; i++) {
-    const { thing, changers, duration, initial, initialTime, callBack } =
+    const { thing, changers, duration, initials, initialTime, callBack } =
       things[i];
-    const progress = Math.min((newTime - initialTime) / (duration * 1000), 1);
+    const progress = Math.min(
+      (currentTime - initialTime) / (duration * 1000),
+      1,
+    );
 
     for (const key in changers) {
       const { changer, value } = changers[key];
@@ -52,7 +73,8 @@ const manipulate = () => {
       if (thing[changer][key] === value) {
         delete changers[key];
       } else {
-        thing[changer][key] = initial[key] + (value - initial[key]) * progress;
+        thing[changer][key] =
+          initials[key] + (value - initials[key]) * progress;
       }
     }
 
@@ -62,11 +84,11 @@ const manipulate = () => {
       i--;
     }
   }
-};
+}
 
 const tick = () => {
   const elapsedTime = clock.getElapsedTime();
-  manipulate(); // Call the manipulate function
+  manipulate();
   renderer.render(scene, camera);
   window.requestAnimationFrame(tick);
 };
@@ -75,59 +97,51 @@ const duration = 1.7;
 const angle = 0.15;
 
 function down() {
-  things.push({
+  initialize({
     thing: mesh,
     changers: {
       x: { changer: "rotation", value: Math.PI * angle * 1 },
     },
     duration,
-    initial: { x: mesh.rotation.x, y: mesh.rotation.y, z: mesh.rotation.z },
-    initialTime: new Date().getTime(),
     callBack: right,
   });
 }
 
 function left() {
-  things.push({
+  initialize({
     thing: mesh,
     changers: {
       y: { changer: "rotation", value: Math.PI * angle * -1 },
     },
     duration,
-    initial: { x: mesh.rotation.x, y: mesh.rotation.y, z: mesh.rotation.z },
-    initialTime: new Date().getTime(),
     callBack: down,
   });
 }
 
 function right() {
-  things.push({
+  initialize({
     thing: mesh,
     changers: {
       y: { changer: "rotation", value: Math.PI * angle * 1 },
     },
     duration,
-    initial: { x: mesh.rotation.x, y: mesh.rotation.y, z: mesh.rotation.z },
-    initialTime: new Date().getTime(),
     callBack: up,
   });
 }
 
 function up() {
-  things.push({
+  initialize({
     thing: mesh,
     changers: {
       x: { changer: "rotation", value: Math.PI * angle * -1 },
     },
     duration,
-    initial: { x: mesh.rotation.x, y: mesh.rotation.y, z: mesh.rotation.z },
-    initialTime: new Date().getTime(),
     callBack: left,
   });
 }
 
 function axisChangeYZntwo() {
-  things.push({
+  initialize({
     thing: mesh,
     changers: {
       y: { changer: "position", value: -1 },
@@ -141,14 +155,12 @@ function axisChangeYZntwo() {
       },
     },
     duration: 5,
-    initial: { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z },
-    initialTime: new Date().getTime(),
     callBack: axisChangeYZone,
   });
 }
 
 function axisChangeYZone() {
-  things.push({
+  initialize({
     thing: mesh,
     changers: {
       y: { changer: "position", value: 2 },
@@ -162,8 +174,6 @@ function axisChangeYZone() {
       },
     },
     duration: 5,
-    initial: { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z },
-    initialTime: new Date().getTime(),
     callBack: axisChangeYZntwo,
   });
 }
